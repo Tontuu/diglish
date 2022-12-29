@@ -44,25 +44,41 @@ async fn main() {
     let body = res.text().await.unwrap();
     let document = Html::parse_document(body.as_str());
 
+    let meaning_block_selector = Selector::parse("div.def-block.ddef_block").unwrap();
     let meaning_selector = Selector::parse("div.def.ddef_d.db").unwrap();
     let example_selector = Selector::parse("span.eg.deg").unwrap();
 
     let mut meanings: Vec<String> = Vec::new();
     let mut examples: Vec<String> = Vec::new();
 
-    for element in document.select(&example_selector) {
-	let text = element.text().collect::<Vec<_>>().join("").trim().to_string();
-	examples.push(text);
+    for element in document.select(&meaning_block_selector) {
+	let meaning_element = element.select(&meaning_selector).next();
+
+	let meaning = match meaning_element {
+	    Some(meaning_element) => meaning_element.text().collect::<Vec<_>>().join("").trim().to_string(),
+	    None => "".to_string()
+	};
+
+	let example_element = element.select(&example_selector).next();
+
+	let example = match example_element {
+	    Some(example_element) => example_element.text().collect::<Vec<_>>().join("").trim().to_string(),
+	    None => "".to_string()
+	};
+
+	meanings.push(meaning);
+	examples.push(example);
     }
 
-    for element in document.select(&meaning_selector) {
-	let text = element.text().collect::<Vec<_>>().join("").trim().to_string();
-	meanings.push(text);
-    }
 
-    for i in 0..meanings.len() {
-	println!("{}\n\t- {}", meanings[i], examples[i]);
-    }
+    // for element in document.select(&meaning_selector) {
+    // 	let text = element.text().collect::<Vec<_>>().join("").trim().to_string();
+    // 	meanings.push(text);
+    // }
+
+    // for i in 0..meanings.len() {
+    // 	println!("{}\n\t- {}", meanings[i], examples[i]);
+    // }
 
     println!("Meanings: {} {:#?}", meanings.len(), meanings);
     println!("Examples: {} {:#?}", examples.len(), examples);
