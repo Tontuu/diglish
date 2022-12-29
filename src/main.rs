@@ -28,6 +28,23 @@ fn url_exists(mut url: String) -> bool {
     return !subdomains.last().unwrap().is_empty()
 }
 
+trait RemoveWhitespaces {
+    fn remove_whitespaces(self) -> String;
+}
+
+impl RemoveWhitespaces for &str {
+    fn remove_whitespaces(self) -> String {
+	let mut result = String::new();
+
+	for word in self.split_whitespace() {
+	    result.push_str(word);
+	    result.push(' ');
+	}
+
+	result.trim().to_owned()
+    }
+}
+
 #[tokio::main]
 async fn main() {
     //let word: String = get_word().to_lowercase();
@@ -55,26 +72,20 @@ async fn main() {
 	let meaning_element = element.select(&meaning_selector).next();
 
 	let meaning = match meaning_element {
-	    Some(meaning_element) => meaning_element.text().collect::<Vec<_>>().join("").trim().to_string(),
+	    Some(meaning_element) => meaning_element.text().collect::<Vec<_>>().join("").remove_whitespaces(),
 	    None => "".to_string()
 	};
 
 	let example_element = element.select(&example_selector).next();
 
 	let example = match example_element {
-	    Some(example_element) => example_element.text().collect::<Vec<_>>().join("").trim().to_string(),
+	    Some(example_element) => example_element.text().collect::<Vec<_>>().join("").remove_whitespaces(),
 	    None => "".to_string()
 	};
 
 	meanings.push(meaning);
 	examples.push(example);
     }
-
-
-    // for element in document.select(&meaning_selector) {
-    // 	let text = element.text().collect::<Vec<_>>().join("").trim().to_string();
-    // 	meanings.push(text);
-    // }
 
     // for i in 0..meanings.len() {
     // 	println!("{}\n\t- {}", meanings[i], examples[i]);
