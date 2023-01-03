@@ -60,6 +60,25 @@ impl RemoveWhitespaces for &str {
     }
 }
 
+fn print_meanings_and_examples(meanings: &Vec<String>, examples: &Vec<String>) {
+    for i in 0..meanings.len() {
+	if i == 0 {
+	    println!("• {}\n", meanings[0].bold());
+
+	    continue
+	}
+
+	println!("{}.\n  {}", i.to_string().purple(), meanings[i]);
+
+	if !examples[i].is_empty() {
+	    println!("    · {}\n", examples[i].dimmed());
+	} else {
+	    println!("");
+	}
+
+    }
+}
+
 fn main() {
     // let matches = cli::get_app()
     let matches = cli::new();
@@ -69,7 +88,7 @@ fn main() {
 	None => get_word().to_string(),
     };
 
-    if word.chars().all(char::is_alphabetic) == false {
+    if !word.chars().all(char::is_alphabetic) {
         eprintln!("{}: Unable to find word: Input is not a valid word", "ERROR".red());
         exit(1);
     }
@@ -103,6 +122,7 @@ fn main() {
                     .text()
                     .collect::<Vec<_>>()
                     .join("")
+		    .replace(":", "")
                     .remove_whitespaces()
             },
         );
@@ -117,6 +137,7 @@ fn main() {
                     .collect::<Vec<_>>()
                     .join("")
                     .remove_whitespaces()
+		    .replace("- ", "")
             },
         );
 
@@ -124,7 +145,12 @@ fn main() {
         examples.push(example);
     }
 
-    for i in 0..meanings.len() {
-        println!("{}\n\t- {}", meanings[i], examples[i]);
-    }
+    // Capitalizes main meaning
+    meanings[0] = meanings[0]
+	.remove(0)
+	.to_uppercase()
+	.to_string()
+	+ &meanings[0];
+
+    print_meanings_and_examples(&meanings, &examples)
 }
