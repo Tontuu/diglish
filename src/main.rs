@@ -1,5 +1,6 @@
-// TODO: xclip support
+// TODO: clipboard support /xclip or xsel
 // TODO: libnotify support
+// TODO: quiet support
 
 #![allow(unreachable_code)]
 
@@ -60,55 +61,12 @@ impl RemoveWhitespaces for &str {
     }
 }
 
-fn print_meanings_and_examples(meanings: &Vec<String>, examples: &Vec<String>) {
-    for i in 0..meanings.len() {
-	if i == 0 {
-	    println!("• {}\n", meanings[0].bold());
-
-	    continue
-	}
-
-	println!("{}.\n  {}", i.to_string().purple(), meanings[i]);
-
-	if !examples[i].is_empty() {
-	    println!("    · {}\n", examples[i].dimmed());
-	} else {
-	    println!("");
-	}
-
-    }
-}
-
-fn main() {
-    // let matches = cli::get_app()
-    let matches = cli::new();
-
-    let word = match matches.get_one::<String>("word") {
-	Some(word) => word.to_string(),
-	None => get_word().to_string(),
-    };
-
-    if !word.chars().all(char::is_alphabetic) {
-        eprintln!("{}: Unable to find word: Input is not a valid word", "ERROR".red());
-        exit(1);
-    }
-
-    let url = format!("https://dictionary.cambridge.org/dictionary/english/{}", word);
-
-    let res = reqwest::blocking::get(url).unwrap();
-
-    if !url_exists(res.url().path().to_string()) {
-        eprintln!("{}: Unable to find word: URL doesn't exist", "ERROR".red());
-        exit(1);
-    }
-
-    let body = res.text().unwrap();
-    let document = Html::parse_document(body.as_str());
-
-    let meaning_block_selector = Selector::parse("div.def-block.ddef_block").unwrap();
-    let meaning_selector = Selector::parse("div.def.ddef_d.db").unwrap();
-    let example_selector = Selector::parse("span.eg.deg").unwrap();
-
+fn scrap(
+    document: Html,
+    meaning_selector: Selector,
+    meaning_block_selector: Selector,
+    example_selector: Selector
+) -> (Vec<String>, Vec<String>) {
     let mut meanings: Vec<String> = Vec::new();
     let mut examples: Vec<String> = Vec::new();
 
@@ -152,5 +110,82 @@ fn main() {
 	.to_string()
 	+ &meanings[0];
 
-    print_meanings_and_examples(&meanings, &examples)
+    (meanings, examples)
+}
+
+fn print_meanings_and_examples(meanings: &Vec<String>, examples: &Vec<String>) {
+    for i in 0..meanings.len() {
+	if i == 0 {
+	    println!("• {}\n", meanings[0].bold());
+
+	    continue
+	}
+
+	println!("{}.\n  {}", i.to_string().bright_purple(), meanings[i]);
+
+	if !examples[i].is_empty() {
+	    println!("    · {}\n", examples[i].dimmed());
+	} else {
+	    println!("");
+	}
+
+    }
+}
+
+fn main() {
+    let matches = cli::new();
+
+    println!("{}", matches.get_flag("clip"));
+    todo!();
+
+    let word = match matches.get_one::<String>("word") {
+	Some(word) => word.to_string(),
+	None => get_word().to_string(),
+    };
+
+
+
+    if !word.chars().all(char::is_alphabetic) {
+        eprintln!("{}: Unable to find word: Input is not a valid word", "ERROR".bright_red());
+        exit(1);
+    }
+
+    let url = format!("https://dictionary.cambridge.org/dictionary/english/{}", word);
+
+    let res = reqwest::blocking::get(url).unwrap();
+
+    if !url_exists(res.url().path().to_string()) {
+        eprintln!("{}: Unable to find word: URL doesn't exist", "ERROR".bright_red());
+        exit(1);
+    }
+
+    let body = res.text().unwrap();
+    let document = Html::parse_document(body.as_str());
+
+    let meaning_block_selector = Selector::parse("div.def-block.ddef_block").unwrap();
+    let meaning_selector = Selector::parse("div.def.ddef_d.db").unwrap();
+    let example_selector = Selector::parse("span.eg.deg").unwrap();
+
+    let (meanings, examples) = scrap(
+	document,
+	meaning_selector,
+	meaning_block_selector,
+	example_selector);
+
+    if matches.get_flag("clip") {
+	cli::clipboard(meanings[0]);
+    }
+
+    if matches.get_flag("notify") {
+	cli::notify(meanings[0]);
+    }
+
+    if matches.get_flag("quiet") {
+	println!("{}", meanings[0].bold());
+	exit(0)
+    }
+
+    print_meanings_and_examples(&meanings, &examples);
+
+    exit(0)
 }
