@@ -1,13 +1,24 @@
-use clap::{arg, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 
-pub fn parse_arguments() -> Command {
-    Command::new("git").
-	about("Cambridge dictionary")
-	.subcommand_required(false)
-	.arg_required_else_help(false)
-	.subcommand(
-	    Command::new("clip")
-		.about("Copy mainly meaning to clipboard using xclip")
-		.arg_required_else_help(false)
-	)
+pub fn new() -> ArgMatches {
+    let app = Command::new("Diglish")
+        .version("1.0")
+        .author("Ton <my_eleanor.ton@pm.me")
+        .about("Cambridge dictionary scrapper")
+        .arg(Arg::new("word"))
+        .arg(
+            Arg::new("clip")
+                .short('c')
+                .long("clipboard")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("notify")
+                .short('n')
+                .long("notify")
+                .action(ArgAction::SetTrue),
+        )
+        .get_matches();
+
+    return app;
 }

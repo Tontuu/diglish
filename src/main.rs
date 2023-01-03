@@ -1,15 +1,12 @@
-// TODO: Get all meanings
-// TODO: Get all examples
-// TODO: Sanatize meanings and examples
-// TODO: Proper error handling
 // TODO: xclip support
 // TODO: libnotify support
+
+#![allow(unreachable_code)]
 
 mod cli;
 
 use {
     colored::Colorize,
-    clap::Parser,
     scraper::{Html, Selector},
     std::io::{stdin, stdout, Write},
     std::process::exit,
@@ -20,13 +17,21 @@ fn get_word() -> String {
 
     stdout().flush().expect("Failed to flush!");
 
-    let mut input_str = String::new();
+    let mut input = String::new();
 
     stdin()
-        .read_line(&mut input_str)
+        .read_line(&mut input)
         .expect("Failed to read line!");
 
-    return input_str;
+    if let Some('\n') = input.chars().next_back() {
+	input.pop();
+    }
+
+    if let Some('\r') = input.chars().next_back() {
+        input.pop();
+    }
+
+    return input;
 }
 
 fn url_exists(mut url: String) -> bool {
@@ -56,24 +61,20 @@ impl RemoveWhitespaces for &str {
 }
 
 fn main() {
+    // let matches = cli::get_app()
+    let matches = cli::new();
 
-    let matches = cli::parse_arguments().get_matches();
+    let word = match matches.get_one::<String>("word") {
+	Some(word) => word.to_string(),
+	None => get_word().to_string(),
+    };
 
-    match matches.subcommand() {
-	Some(("clip", sub_matches)) => {
-	    println!("Copied to clipboard");
-	}
-	_ => unreachable!(),
+    if word.chars().all(char::is_alphabetic) == false {
+        eprintln!("{}: Unable to find word: Input is not a valid word", "ERROR".red());
+        exit(1);
     }
 
-    todo!();
-
-    let url = if !cfg!(debug_assertions) {
-	let word: String = get_word().to_lowercase();
-	format!("https://dictionary.cambridge.org/dictionary/english/{}", &word)
-    } else {
-	"https://dictionary.cambridge.org/dictionary/english/table".to_string()
-    };
+    let url = format!("https://dictionary.cambridge.org/dictionary/english/{}", word);
 
     let res = reqwest::blocking::get(url).unwrap();
 
