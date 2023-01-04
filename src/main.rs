@@ -1,4 +1,3 @@
-// TODO: clipboard support /xclip or xsel
 // TODO: libnotify support
 // TODO: quiet support
 
@@ -132,21 +131,18 @@ fn print_meanings_and_examples(meanings: &Vec<String>, examples: &Vec<String>) {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = cli::new();
 
-    println!("{}", matches.get_flag("clip"));
-    todo!();
+
 
     let word = match matches.get_one::<String>("word") {
 	Some(word) => word.to_string(),
 	None => get_word().to_string(),
     };
 
-
-
     if !word.chars().all(char::is_alphabetic) {
-        eprintln!("{}: Unable to find word: Input is not a valid word", "ERROR".bright_red());
+        eprintln!("{}: Unable to find word: Input is not a valid word", "Error".bright_red());
         exit(1);
     }
 
@@ -155,7 +151,7 @@ fn main() {
     let res = reqwest::blocking::get(url).unwrap();
 
     if !url_exists(res.url().path().to_string()) {
-        eprintln!("{}: Unable to find word: URL doesn't exist", "ERROR".bright_red());
+        eprintln!("{}: Unable to find word: URL doesn't exist", "Error".bright_red());
         exit(1);
     }
 
@@ -173,16 +169,14 @@ fn main() {
 	example_selector);
 
     if matches.get_flag("clip") {
-	cli::clipboard(meanings[0]);
-    }
-
-    if matches.get_flag("notify") {
-	cli::notify(meanings[0]);
-    }
-
-    if matches.get_flag("quiet") {
-	println!("{}", meanings[0].bold());
-	exit(0)
+	let result = cli::clipboard(meanings[0].clone());
+	match result {
+	    Ok(_) => (),
+	    Err(e) => {
+		eprintln!("{}: {}", "Error".bright_red(), e.to_string());
+		exit(1)
+	    } 
+	}
     }
 
     print_meanings_and_examples(&meanings, &examples);
