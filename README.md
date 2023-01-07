@@ -1,7 +1,7 @@
 # Diglish
 English Cambridge dictionary scrapper but in Rust
 
-<img src="assets/diglish_example.gif">
+[![asciicast](https://asciinema.org/a/myAoDmaEigUCHVUwW08CDz7Uh.svg)](https://asciinema.org/a/myAoDmaEigUCHVUwW08CDz7Uh)
 
 ## Requirements
 >Requires cargo
