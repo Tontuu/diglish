@@ -180,6 +180,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    if matches.get_flag("notify") {
+	let result = cli::notify(meanings[0].clone());
+	match result {
+	    Ok(_) => (),
+	    Err(e) => {
+                eprintln!("{}: {}", "Error".bright_red(), e.to_string());
+                exit(1)
+	    }
+	}
+    }
+
     if matches.get_flag("quiet") {
         println!("{}", meanings[0]);
         exit(0)

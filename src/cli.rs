@@ -33,7 +33,7 @@ pub fn new() -> ArgMatches {
 pub fn clipboard(meaning: String) -> Result<(), Box<dyn std::error::Error>> {
     let command = format!("echo -n '{}'", meaning);
 
-    // Spawn the sh/echo process
+    // Spawn the shell process so we can run the program.
     let echo = if cfg!(target_os = "windows") {
         std::process::Command::new("cmd")
             .args(["/C", command.as_str()])
@@ -57,6 +57,30 @@ pub fn clipboard(meaning: String) -> Result<(), Box<dyn std::error::Error>> {
         .stdout(std::process::Stdio::piped())
         .spawn()
         .with_context(|| format!("Cannot find xclip binary path"))?;
+
+    Ok(())
+}
+
+
+pub fn notify(meaning: String) -> Result<(), Box<dyn std::error::Error>> {
+    // You have to install an implementation of Desktop Notifications Spec and
+    // a notification server to run this command
+
+    let title = "Diglish";
+    let command_win = format!("msg '{}' '{}'", title, meaning);
+    let command_unix = format!("notify-send '{}' '{}'", title, meaning);
+
+    // Spawn the shell process so we can run the program.
+    let _notify = if cfg!(target_os = "windows") {
+        std::process::Command::new("cmd")
+            .args(["/C", command_win.as_str()])
+            .spawn()
+    } else {
+        std::process::Command::new("sh")
+            .args(&["-c", command_unix.as_str()])
+            .spawn()
+    }
+    .with_context(|| format!("Cannot find shell binary path"))?;
 
     Ok(())
 }
