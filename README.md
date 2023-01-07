@@ -1,4 +1,4 @@
-# Zzep
+# Diglish
 English Cambridge dictionary scrapper but in Rust
 
 <img src="assets/diglish_example.gif">
