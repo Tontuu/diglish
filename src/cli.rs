@@ -11,18 +11,21 @@ pub fn new() -> ArgMatches {
             Arg::new("clip")
                 .short('c')
                 .long("clipboard")
+		.help("Save description into system clipboard, requires xclip installed to work")
                 .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("notify")
                 .short('n')
                 .long("notify")
+		.help("Notify description to desktop environment")
                 .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("quiet")
                 .short('q')
                 .long("quiet")
+		.help("Print only the mainly description of the given word")
                 .action(ArgAction::SetTrue),
         )
         .get_matches();
@@ -70,7 +73,7 @@ pub fn notify(meaning: String) -> Result<(), Box<dyn std::error::Error>> {
     let command_win = format!("msg '{}' '{}'", title, meaning);
     let command_unix = format!("notify-send '{}' '{}'", title, meaning);
 
-    // Spawn the shell process so we can run the program.
+    // Spawn the shel process so we can run the program.
     let _notify = if cfg!(target_os = "windows") {
         std::process::Command::new("cmd")
             .args(["/C", command_win.as_str()])

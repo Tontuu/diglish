@@ -1,8 +1,3 @@
-// TODO: libnotify support
-// TODO: quiet support
-
-#![allow(unreachable_code)]
-
 mod cli;
 
 use {
